@@ -1,0 +1,92 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect a venue",
+        "description": "Create an API token on the venue's host dashboard under Settings → Integrations, then paste it here.",
+        "data": {
+          "base_url": "UncTunes URL",
+          "token": "Venue API token",
+          "verify_ssl": "Verify SSL certificate"
+        },
+        "data_description": {
+          "base_url": "Where your UncTunes server lives, e.g. https://unctunes.example.com",
+          "token": "Starts with ut_. Shown once when you create it."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate {venue}",
+        "description": "The venue rejected its API token. Create a new one on the host dashboard and paste it here.",
+        "data": {
+          "token": "Venue API token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the UncTunes server at that URL.",
+      "invalid_auth": "The venue rejected that token.",
+      "wrong_venue": "That token belongs to a different venue.",
+      "unknown": "Unexpected error. Check the Home Assistant log."
+    },
+    "abort": {
+      "already_configured": "This venue is already set up.",
+      "reauth_successful": "Token updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "UncTunes options",
+        "data": {
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "scan_interval": "How often to read the venue's queue and player state, in seconds."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "queue_length": { "name": "Queue length" },
+      "requester": { "name": "Requested by" },
+      "next_up": { "name": "Next up" },
+      "playback_device": { "name": "Playback device" },
+      "pending_members": { "name": "Pending join requests" }
+    },
+    "switch": {
+      "autoplay": { "name": "Autoplay" },
+      "auto_advance": { "name": "Auto-advance" },
+      "device_lock": { "name": "Device lock" },
+      "qr_join": { "name": "QR joining" }
+    },
+    "button": {
+      "skip": { "name": "Skip" },
+      "play_next": { "name": "Play next in queue" },
+      "clear_queue": { "name": "Clear queue" },
+      "pool_sync": { "name": "Sync pool" }
+    }
+  },
+  "services": {
+    "request_song": {
+      "name": "Request a song",
+      "description": "Adds a song to the venue's queue, by Spotify track URI or by searching.",
+      "fields": {
+        "config_entry_id": { "name": "Venue", "description": "Which venue to queue on. Optional when only one venue is set up." },
+        "query": { "name": "Search", "description": "Free-text Spotify search; the top result is queued." },
+        "uri": { "name": "Track URI", "description": "A spotify:track: URI, an open.spotify.com track link, or a bare track id. Wins over Search when both are given." },
+        "priority": { "name": "Play next", "description": "Put the song at the front of the queue instead of the back." },
+        "requester": { "name": "Requested by", "description": "Name shown next to the song in the queue. Defaults to Home Assistant." }
+      }
+    },
+    "search": {
+      "name": "Search Spotify",
+      "description": "Searches Spotify through the venue and returns matching tracks.",
+      "fields": {
+        "config_entry_id": { "name": "Venue", "description": "Which venue to search through. Optional when only one venue is set up." },
+        "query": { "name": "Search", "description": "What to look for." },
+        "limit": { "name": "Limit", "description": "Maximum number of tracks to return." }
+      }
+    }
+  }
+}

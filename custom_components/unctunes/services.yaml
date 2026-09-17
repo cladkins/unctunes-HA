@@ -1,0 +1,48 @@
+request_song:
+  fields:
+    config_entry_id:
+      required: false
+      selector:
+        config_entry:
+          integration: unctunes
+    query:
+      required: false
+      example: "Mr. Brightside The Killers"
+      selector:
+        text:
+    uri:
+      required: false
+      example: "spotify:track:003vvx7Niy0yvhvHt4a68B"
+      selector:
+        text:
+    priority:
+      required: false
+      default: false
+      selector:
+        boolean:
+    requester:
+      required: false
+      example: "Table 4"
+      selector:
+        text:
+
+search:
+  fields:
+    config_entry_id:
+      required: false
+      selector:
+        config_entry:
+          integration: unctunes
+    query:
+      required: true
+      example: "Dancing Queen"
+      selector:
+        text:
+    limit:
+      required: false
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 20
+          mode: box
