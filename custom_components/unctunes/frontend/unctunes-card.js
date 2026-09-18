@@ -15,7 +15,7 @@
  * the file you read.
  */
 
-const CARD_VERSION = '0.1.0';
+const CARD_VERSION = '0.1.1';
 const CARD_TAG = 'unctunes-card';
 const EDITOR_TAG = 'unctunes-card-editor';
 
@@ -26,6 +26,7 @@ const DEFAULTS = {
   show_queue: true,
   show_now_playing: true,
   show_controls: false,
+  show_speaker: false,
   allow_priority: false,
   ask_name: false,
   requester: 'Jukebox',
@@ -96,6 +97,13 @@ const STYLES = `
     background: var(--secondary-background-color, transparent); color: var(--primary-text-color); font-size: 1.2rem;
     cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
   .icon-btn:active { transform: scale(0.96); }
+
+  .speaker { display: flex; align-items: center; gap: 10px; }
+  .speaker label { font-size: 0.85rem; color: var(--secondary-text-color); white-space: nowrap; }
+  .speaker select { flex: 1; min-width: 0; font: inherit; font-size: 0.95rem; padding: 10px 12px; border-radius: 10px;
+    border: 1.5px solid var(--divider-color, rgba(127,127,127,0.3)); background: var(--secondary-background-color, transparent);
+    color: var(--primary-text-color); outline: none; }
+  .speaker select:focus { border-color: var(--primary-color); }
 
   .search { position: relative; }
   .search input[type=search], .search input[type=text] {
@@ -218,10 +226,12 @@ class UncTunesCard extends HTMLElement {
     const st = this._state;
     const a = st?.attributes || {};
     const key = JSON.stringify([st?.state, a.media_title, a.media_artist, a.entity_picture, a.requester, a.queue, a.queue_length,
-      a.requests_open, a.volume_level, a.media_duration, a.media_position, a.media_position_updated_at, a.friendly_name]);
+      a.requests_open, a.volume_level, a.media_duration, a.media_position, a.media_position_updated_at, a.friendly_name,
+      a.source, a.source_list]);
     if (key === this._lastKey) return;
     this._lastKey = key;
     this._renderHeader(st);
+    this._renderSpeaker(st);
     if (this._config.show_now_playing) this._renderNow(st);
     if (this._config.show_queue) this._renderQueue(st);
     this._renderClosed(st);
@@ -240,6 +250,10 @@ class UncTunesCard extends HTMLElement {
               <button class="icon-btn" id="btnPlayPause" title="Play / pause">⏯</button>
               <button class="icon-btn" id="btnSkip" title="Skip">⏭</button>
               <input type="range" id="volume" min="0" max="100" step="1" title="Volume">
+            </div>` : ''}
+          ${c.show_speaker ? `<div class="speaker">
+              <label for="speaker">Speaker</label>
+              <select id="speaker"><option value="" disabled selected>Choose a speaker…</option></select>
             </div>` : ''}
           <div class="closed" id="closed" hidden></div>
           ${c.show_search ? `<div class="search" id="search">
@@ -276,6 +290,8 @@ class UncTunesCard extends HTMLElement {
       const vol = root.getElementById('volume');
       vol.addEventListener('change', () => this._call('media_player', 'volume_set', { volume_level: Number(vol.value) / 100 }));
     }
+    const speaker = root.getElementById('speaker');
+    if (speaker) speaker.addEventListener('change', () => this._selectSpeaker(speaker.value));
     root.querySelector('.wrap').addEventListener('pointerdown', () => this._touch());
   }
 
@@ -293,6 +309,32 @@ class UncTunesCard extends HTMLElement {
     }
     const pp = root.getElementById('btnPlayPause');
     if (pp) pp.textContent = st?.state === 'playing' ? '⏸' : '▶';
+  }
+
+  _renderSpeaker(st) {
+    const sel = this.shadowRoot.getElementById('speaker');
+    if (!sel) return;
+    // Don't rebuild the list under an open dropdown.
+    if (this.shadowRoot.activeElement === sel) return;
+    const list = st?.attributes?.source_list || [];
+    const current = st?.attributes?.source || '';
+    const names = current && !list.includes(current) ? [current, ...list] : list;
+    const placeholder = `<option value="" disabled${current ? '' : ' selected'}>${names.length ? 'Choose a speaker…' : 'No speakers seen yet'}</option>`;
+    sel.innerHTML = placeholder + names.map((n) =>
+      `<option value="${esc(n)}"${n === current ? ' selected' : ''}>${esc(n)}</option>`).join('');
+  }
+
+  async _selectSpeaker(name) {
+    if (!name) return;
+    this._touch();
+    try {
+      await this._hass.callService('media_player', 'select_source', { entity_id: this._config.entity, source: name });
+      this._toast(`Speaker: ${name}`);
+    } catch (err) {
+      this._toast(this._errMsg(err, 'Could not change speaker'), true);
+      this._lastKey = ''; // re-render so the dropdown snaps back to the real selection
+      this._render();
+    }
   }
 
   _renderNow(st) {
@@ -491,6 +533,7 @@ const EDITOR_SCHEMA = [
       { name: 'show_search', selector: { boolean: {} } },
       { name: 'show_queue', selector: { boolean: {} } },
       { name: 'show_controls', selector: { boolean: {} } },
+      { name: 'show_speaker', selector: { boolean: {} } },
       { name: 'allow_priority', selector: { boolean: {} } },
       { name: 'ask_name', selector: { boolean: {} } },
     ],
@@ -507,6 +550,7 @@ const EDITOR_LABELS = {
   show_search: 'Show song search',
   show_queue: 'Show the queue',
   show_controls: 'Show host controls (pause, skip, volume)',
+  show_speaker: 'Show speaker selector',
   allow_priority: 'Allow “play next” requests',
   ask_name: 'Ask guests for their name',
   requester: 'Default requester name',

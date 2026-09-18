@@ -5,7 +5,7 @@ from __future__ import annotations
 from homeassistant.const import Platform
 
 DOMAIN = "unctunes"
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 
 CONF_BASE_URL = "base_url"
 CONF_TOKEN = "token"

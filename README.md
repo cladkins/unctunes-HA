@@ -41,7 +41,7 @@ The card is bundled with the integration and served at `/unctunes-static/unctune
 
 ```yaml
 resources:
-  - url: /unctunes-static/unctunes-card.js?v=0.1.0
+  - url: /unctunes-static/unctunes-card.js?v=0.1.1
     type: module
 ```
 
@@ -54,6 +54,7 @@ show_search: true
 show_queue: true
 show_now_playing: true
 show_controls: false
+show_speaker: false
 allow_priority: false
 ask_name: false
 requester: Jukebox
@@ -69,6 +70,7 @@ idle_reset: 45
 | `show_search` | `true` | The search box and results with **+ Add** buttons. |
 | `show_queue` | `true` | The upcoming queue with positions and requesters. |
 | `show_controls` | `false` | Pause, skip, and volume. Leave off on a public kiosk. |
+| `show_speaker` | `false` | A dropdown of the venue's Spotify devices. Picking one selects it on UncTunes, the same as the dashboard's Playback Device picker, with no UncTunes login. |
 | `allow_priority` | `false` | Adds a ⚡ button that puts the song at the front of the queue. |
 | `ask_name` | `false` | Shows a name field so the queue reads "Table 4" instead of the default requester. Remembered per browser. |
 | `requester` | `Jukebox` | Name attached to requests when no guest name is given. |
